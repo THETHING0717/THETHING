@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0147)file:///C:/Users/shine/Documents/Codex/2026-08-18/new-chat/outputs/2026-08-18-%EC%A4%91%EA%B5%AD%EA%B1%B0%EB%9E%98-%EB%B2%88%EC%97%AD%EA%B8%B0.html -->
+<!-- saved from url=(0117)file:///C:/Users/shine/Documents/Codex/2026-08-17/ui-papago-2-1-1688-the/outputs/2026-08-17-the-thing-translator.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -288,32 +288,32 @@
         <section class="translation-pane" aria-label="원문 입력">
           <header class="pane-head">
             <div class="language">
-              <span class="flag" id="sourceFlag" aria-hidden="true">🇰🇷</span>
-              <span id="sourceLanguage">한국어</span>
+              <span class="flag" id="sourceFlag" aria-hidden="true">🇨🇳</span>
+              <span id="sourceLanguage">중국어</span>
             </div>
             <span class="auto-label">자동 감지</span>
           </header>
 
-          <textarea id="sourceText" class="text-area" aria-label="번역할 문장 입력" placeholder="한국어 입력" spellcheck="false"></textarea>
+          <textarea id="sourceText" class="text-area" aria-label="번역할 문장 입력" placeholder="중국어 입력" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
 
           <footer class="pane-actions source-actions">
             <button class="action-button" id="pasteButton" type="button">붙여넣기</button>
-            <span class="status" id="status" role="status" aria-live="polite">자동 번역 완료</span>
+            <span class="status" id="status" role="status" aria-live="polite"></span>
           </footer>
         </section>
 
         <section class="translation-pane" aria-label="번역 결과">
           <header class="pane-head">
             <div class="language">
-              <span class="flag" id="targetFlag" aria-hidden="true">🇨🇳</span>
-              <span id="targetLanguage">중국어 간체 + 한국어 확인</span>
+              <span class="flag" id="targetFlag" aria-hidden="true">🇰🇷</span>
+              <span id="targetLanguage">한국어 번역</span>
             </div>
           </header>
 
-          <div id="resultText" class="result-area" role="textbox" aria-label="번역 결과" aria-readonly="true" data-placeholder="중국어 간체와 한국어 확인 번역이 여기에 표시됩니다."><div class="result-content"><p class="result-kicker">중국어로:</p><p class="result-primary">你好</p><p class="result-confirmation">= 안녕하세요</p></div></div>
+          <div id="resultText" class="result-area" role="textbox" aria-label="번역 결과" aria-readonly="true" data-placeholder="번역 결과가 여기에 표시됩니다."></div>
 
           <footer class="pane-actions result-actions">
-            <button class="action-button" id="copyButton" type="button">중국어 복사</button>
+            <button class="action-button" id="copyButton" type="button" disabled="">복사</button>
           </footer>
         </section>
       </div>
@@ -500,6 +500,22 @@
         debounceTimer = setTimeout(translateNow, 550);
       }
 
+      function resetTranslatorSession() {
+        clearTimeout(debounceTimer);
+        if (requestController) {
+          requestController.abort();
+          requestController = null;
+        }
+        requestSequence += 1;
+        sourceText.value = "";
+        status.textContent = "";
+        updateDirection(detectDirection(""));
+        clearResult();
+      }
+
+      window.addEventListener("pageshow", resetTranslatorSession);
+      resetTranslatorSession();
+
       async function copyText(text) {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
@@ -556,6 +572,6 @@
   </script>
 
 
-
-
 </body></html>
+
+
