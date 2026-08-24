@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0114)file:///C:/Users/shine/Documents/Codex/2026-08-24/1-2-ean-13-3-4/outputs/2026-08-24-coupang-product-generator.html -->
+<!-- saved from url=(0116)file:///C:/Users/shine/Documents/Codex/2026-08-24/1-2-ean-13-3-4/outputs/2026-08-24-coupang-model-number-choice.html -->
 <html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,6 +48,19 @@
     .field input { height: 48px; padding: 0 14px; border-radius: 9px; }
     .field input::placeholder, .search-box input::placeholder { color: #a2aaba; }
     .field input:focus, .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(36,99,235,.09); outline: none; }
+    .model-choice-panel { margin-top: 18px; padding: 18px; border: 1px solid #dce5f2; border-radius: 11px; background: #f8faff; }
+    .model-choice-panel[hidden] { display: none; }
+    .model-choice-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 13px; }
+    .model-choice-head strong { display: block; font-size: 13px; }
+    .model-choice-head p { margin: 4px 0 0; color: #758197; font-size: 10px; }
+    .candidate-refresh { flex: 0 0 auto; padding: 8px 11px; border: 1px solid #cbd6e5; border-radius: 7px; background: #fff; color: #45546b; font-size: 10px; font-weight: 750; }
+    .candidate-refresh:hover { background: #eef3f9; }
+    .model-candidates { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+    .model-candidate { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 12px; border: 1px solid #dce3ee; border-radius: 9px; background: #fff; cursor: pointer; transition: border-color .2s,background .2s,box-shadow .2s; }
+    .model-candidate:has(input:checked) { border-color: var(--primary); background: #eef4ff; box-shadow: 0 0 0 2px rgba(36,99,235,.08); }
+    .model-candidate input { flex: 0 0 auto; margin: 0; accent-color: var(--primary); }
+    .model-candidate b { display: block; color: #173875; font: 800 15px/1.2 ui-monospace,Consolas,monospace; }
+    .model-candidate small { display: block; margin-top: 4px; color: #69768b; font-size: 10px; line-height: 1.35; }
     .barcode-guidance { display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; color: #68748a; font-size: 11px; line-height: 1.55; }
     .barcode-guidance b { display: grid; flex: 0 0 18px; height: 18px; place-items: center; border-radius: 50%; background: #eef2f7; color: #667085; font: 700 11px/1 serif; }
     .barcode-guidance p { margin: 0; }
@@ -110,6 +123,7 @@
     @media (max-width:1050px) {
       .form-grid { grid-template-columns: 1fr 1fr; }
       .field:last-child { grid-column: 1/-1; }
+      .model-candidates { grid-template-columns: repeat(2,1fr); }
       .result-grid { grid-template-columns: repeat(2,1fr); }
       .result-row:nth-child(3n) { border-right: 1px solid var(--line); }
       .result-row:nth-child(2n) { border-right: 0; }
@@ -125,6 +139,9 @@
       .input-panel .section-heading > p { display: none; }
       .form-grid { grid-template-columns: 1fr; }
       .field:last-child { grid-column: auto; }
+      .model-choice-head { align-items: flex-start; flex-direction: column; }
+      .candidate-refresh { width: 100%; }
+      .model-candidates { grid-template-columns: 1fr; }
       .generate-button, .copy-all-button { width: 100%; }
       .result-grid { grid-template-columns: 1fr; }
       .result-row, .result-row:nth-child(3n), .result-row:nth-child(2n) { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -159,9 +176,16 @@
         <div class="section-heading"><div><span class="section-number">01</span><h2 id="inputHeading">상품 입력</h2></div><p><span class="required-dot"></span>제품명은 필수 항목입니다.</p></div>
         <form id="productForm">
           <div class="form-grid">
-            <label class="field"><span>제품명 <em>필수</em></span><input id="productName" placeholder="예: 크레이드미트 4종세트" autocomplete="off"></label>
-            <label class="field"><span>구성/옵션 <small>선택</small></span><input id="productOption" placeholder="예: 블럭형 / 타월형 / 원형블럭형 / 4번째 종류" autocomplete="off"></label>
+            <label class="field"><span>제품명 <em>필수</em></span><input id="productName" autocomplete="off"></label>
+            <label class="field"><span>구성/옵션 <small>선택</small></span><input id="productOption" autocomplete="off"></label>
             <label class="field"><span>바코드번호 <small>선택</small></span><input id="barcodeInput" placeholder="미입력 시 EAN-13 형식 자동 생성" inputmode="numeric" maxlength="13" autocomplete="off"></label>
+          </div>
+          <div class="model-choice-panel" id="modelChoicePanel" hidden="">
+            <div class="model-choice-head">
+              <div><strong>모델번호 선택</strong><p>상품명 약어와 숫자를 섞은 짧은 후보입니다. 하나를 선택해 주세요.</p></div>
+              <button class="candidate-refresh" id="refreshModelCandidates" type="button">후보 다시 만들기</button>
+            </div>
+            <div class="model-candidates" id="modelCandidates"></div>
           </div>
           <div class="barcode-guidance"><b>i</b><p>자동 생성된 바코드는 EAN-13 숫자 형식과 체크디지트를 만족하도록 생성된 내부용 번호입니다. 공식 유통 바코드가 필요한 경우 공식 발급 바코드를 사용하세요.</p></div>
           <button class="button button-primary generate-button" type="submit">상품정보 생성 <span>→</span></button>
@@ -169,8 +193,8 @@
       </section>
       <section class="panel result-panel" id="resultSection" aria-labelledby="resultHeading">
         <div class="section-heading"><div><span class="section-number">02</span><h2 id="resultHeading">생성 결과</h2></div><span class="saved-badge">저장 완료</span></div>
-        <div class="result-grid" id="resultGrid"></div>
-        <p class="result-barcode-note" id="resultBarcodeNote"></p>
+        <div class="result-grid" id="resultGrid"><div class="result-row"><div><span class="result-label">상품번호</span><strong class="result-value ">002</strong></div><button class="button button-copy" type="button" data-copy-value="002" data-copy-label="상품번호">복사</button></div><div class="result-row"><div><span class="result-label">제품명</span><strong class="result-value name">클레이드미트4종세트</strong></div><button class="button button-copy" type="button" data-copy-value="클레이드미트4종세트" data-copy-label="제품명">복사</button></div><div class="result-row"><div><span class="result-label">판매자상품코드</span><strong class="result-value ">CRMT-4SET-002</strong></div><button class="button button-copy" type="button" data-copy-value="CRMT-4SET-002" data-copy-label="판매자상품코드">복사</button></div><div class="result-row"><div><span class="result-label">모델번호</span><strong class="result-value ">C8R4T-2309</strong></div><button class="button button-copy" type="button" data-copy-value="C8R4T-2309" data-copy-label="모델번호">복사</button></div><div class="result-row"><div><span class="result-label">CTIN</span><strong class="result-value ">8310396522568</strong></div><button class="button button-copy" type="button" data-copy-value="8310396522568" data-copy-label="CTIN">복사</button></div><div class="result-row"><div><span class="result-label">바코드번호</span><strong class="result-value ">2942273890361</strong></div><button class="button button-copy" type="button" data-copy-value="2942273890361" data-copy-label="바코드번호">복사</button></div></div>
+        <p class="result-barcode-note" id="resultBarcodeNote">자동 생성된 바코드는 EAN-13 숫자 형식과 체크디지트를 만족하도록 생성된 내부용 번호입니다. 공식 유통 바코드가 필요한 경우 공식 발급 바코드를 사용하세요.</p>
         <button class="button button-secondary copy-all-button" id="copyAllButton" type="button">전체 복사</button>
       </section>
       <section class="panel list-panel" aria-labelledby="listHeading">
@@ -190,8 +214,8 @@
   <script>
   (() => {
     'use strict';
-    const PRODUCTS_KEY = 'coupang-product-generator-standalone.products.v1';
-    const REGISTRY_KEY = 'coupang-product-generator-standalone.registry.v1';
+    const PRODUCTS_KEY = 'coupang-model-choice-generator.products.v1';
+    const REGISTRY_KEY = 'coupang-model-choice-generator.registry.v1';
     const BARCODE_NOTICE = '자동 생성된 바코드는 EAN-13 숫자 형식과 체크디지트를 만족하도록 생성된 내부용 번호입니다. 공식 유통 바코드가 필요한 경우 공식 발급 바코드를 사용하세요.';
     const EMPTY_REGISTRY = { lastProductNumber:0, lastCodeSerial:0, usedProductNumbers:[], usedProductCodes:[], usedModelNumbers:[], usedCTINs:[], usedBarcodes:[] };
     const INITIALS = ['G','K','N','D','D','R','M','B','B','S','S','','J','J','C','C','T','P','H'];
@@ -200,6 +224,7 @@
     let registry = Object.assign({}, EMPTY_REGISTRY, readStorage(REGISTRY_KEY, EMPTY_REGISTRY));
     let currentResult = null;
     let noticeTimer = null;
+    let modelCandidateTimer = null;
 
     function readStorage(key, fallback) {
       try { const value = JSON.parse(localStorage.getItem(key)); return value == null ? fallback : value; }
@@ -239,13 +264,44 @@
       do { candidate = base + String(next++).padStart(3,'0'); } while (existing.has(candidate));
       return candidate;
     }
-    function generateModelNumber(name, option, serial, existing) {
-      const token = createOptionToken(name, option);
-      const compact = token === 'STD' ? 'S' : token.replace('SET','S');
-      const base = createAbbreviation(name) + compact + '-';
-      let next = serial, candidate;
-      do { candidate = base + String(next++).padStart(3,'0'); } while (existing.has(candidate));
-      return candidate;
+    function createModelCandidates(name, option) {
+      const base = createAbbreviation(name).padEnd(4,'X').slice(0,4);
+      const numberMatch = (name + ' ' + option).match(/\d/);
+      const optionDigit = numberMatch ? numberMatch[0] : String(1 + Number(randomDigits(1)) % 9);
+      const usedModels = new Set([...registry.usedModelNumbers,...products.map(item => item.modelNumber)]);
+      const candidates = [];
+      let attempts = 0;
+      while (candidates.length < 6 && attempts < 100) {
+        const randomDigit = String(1 + Number(randomDigits(1)) % 9);
+        const patterns = [
+          base[0] + base[1] + optionDigit + base[2] + randomDigit,
+          base[0] + randomDigit + base[1] + optionDigit + base[3],
+          optionDigit + base[0] + base[2] + randomDigit + base[3],
+          base[0] + base[1] + base[2] + optionDigit + base[3],
+          base[0] + optionDigit + base[2] + base[3] + randomDigit,
+          base[1] + optionDigit + base[2] + base[3] + randomDigit
+        ];
+        const prefix = patterns[candidates.length % patterns.length];
+        const candidate = prefix + '-' + randomDigits(4);
+        if (!usedModels.has(candidate) && !candidates.some(item => item.value === candidate)) {
+          candidates.push({ value:candidate, description:'상품 약어 ' + base + ' · 구성 숫자 ' + optionDigit + ' 혼합형' });
+        }
+        attempts += 1;
+      }
+      return candidates;
+    }
+    function renderModelCandidates() {
+      const name = $('#productName').value.trim();
+      const option = $('#productOption').value.trim();
+      const panel = $('#modelChoicePanel');
+      if (!name) { panel.hidden = true; $('#modelCandidates').innerHTML = ''; return; }
+      const candidates = createModelCandidates(name, option);
+      $('#modelCandidates').innerHTML = candidates.map((item,index) => '<label class="model-candidate"><input type="radio" name="modelCandidate" value="' + escapeHTML(item.value) + '" ' + (index === 0 ? 'checked' : '') + '><span><b>' + escapeHTML(item.value) + '</b><small>' + escapeHTML(item.description) + '</small></span></label>').join('');
+      panel.hidden = false;
+    }
+    function scheduleModelCandidates() {
+      clearTimeout(modelCandidateTimer);
+      modelCandidateTimer = setTimeout(renderModelCandidates, 300);
     }
     function generateCTIN(existing) {
       let candidate;
@@ -321,6 +377,9 @@
       $('#listSummary').textContent = '전체 ' + products.length + '개 · 검색 결과 ' + filtered.length + '개';
       $('#clearSearch').hidden = !keyword;
     }
+    $('#productName').addEventListener('input', scheduleModelCandidates);
+    $('#productOption').addEventListener('input', scheduleModelCandidates);
+    $('#refreshModelCandidates').addEventListener('click', renderModelCandidates);
     $('#barcodeInput').addEventListener('input', event => { event.target.value = event.target.value.replace(/\D/g,'').slice(0,13); });
     $('#productForm').addEventListener('submit', event => {
       event.preventDefault();
@@ -334,17 +393,21 @@
       const usedModels = new Set([...registry.usedModelNumbers,...products.map(item => item.modelNumber)]);
       const usedCTINs = new Set([...registry.usedCTINs,...products.map(item => item.ctin)]);
       const usedBarcodes = new Set([...registry.usedBarcodes,...products.map(item => item.barcode)]);
+      if (!document.querySelector('input[name="modelCandidate"]:checked')) renderModelCandidates();
+      const selectedModel = document.querySelector('input[name="modelCandidate"]:checked');
+      if (!selectedModel) { showNotice('모델번호 후보를 선택해 주세요.', true); return; }
       if (enteredBarcode && usedBarcodes.has(enteredBarcode)) { showNotice('이미 생성 기록에 사용된 바코드번호입니다.', true); return; }
       const productNumber = nextProductNumber(usedNumbers, registry.lastProductNumber);
       const serial = Math.max(0, Number(registry.lastCodeSerial) || 0) + 1;
       const productCode = generateProductCode(name, option, serial, usedCodes);
-      const modelNumber = generateModelNumber(name, option, serial, usedModels);
+      const modelNumber = selectedModel.value;
+      if (usedModels.has(modelNumber)) { showNotice('이미 사용된 모델번호입니다. 후보를 다시 선택해 주세요.', true); renderModelCandidates(); return; }
       const ctin = generateCTIN(usedCTINs);
       const barcode = enteredBarcode || generateEAN13(usedBarcodes);
       const product = { id:(crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random()), productNumber, productName:name, option, productCode, modelNumber, ctin, barcode, barcodeSource:enteredBarcode ? 'official' : 'generated', createdAt:new Date().toISOString() };
       products.unshift(product);
       registry = { lastProductNumber:Number(productNumber), lastCodeSerial:serial, usedProductNumbers:[...registry.usedProductNumbers,productNumber], usedProductCodes:[...registry.usedProductCodes,productCode], usedModelNumbers:[...registry.usedModelNumbers,modelNumber], usedCTINs:[...registry.usedCTINs,ctin], usedBarcodes:[...registry.usedBarcodes,barcode] };
-      saveState(); renderResult(product); renderList(); event.target.reset(); showNotice('상품정보를 생성하고 저장했습니다.', false);
+      saveState(); renderResult(product); renderList(); event.target.reset(); $('#modelChoicePanel').hidden = true; $('#modelCandidates').innerHTML = ''; showNotice('상품정보를 생성하고 저장했습니다.', false);
       requestAnimationFrame(() => $('#resultSection').scrollIntoView({behavior:'smooth',block:'start'}));
     });
     $('#resultGrid').addEventListener('click', event => { const button = event.target.closest('[data-copy-value]'); if (button) copyText(button.dataset.copyValue, button.dataset.copyLabel); });
@@ -367,6 +430,7 @@
     renderList();
   })();
   </script>
+
 
 
 </body></html>
