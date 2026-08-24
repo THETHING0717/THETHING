@@ -1,16 +1,372 @@
-<!doctype html>
-<html lang="ko">
-  <head>
-    <script type="module" src="/@vite/client"></script>
+<!DOCTYPE html>
+<!-- saved from url=(0114)file:///C:/Users/shine/Documents/Codex/2026-08-24/1-2-ean-13-3-4/outputs/2026-08-24-coupang-product-generator.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fa">
+  <meta name="description" content="쿠팡 신규 상품 등록용 상품 식별정보 생성기">
+  <title>쿠팡 상품정보 생성기</title>
+  <style>
+    :root {
+      font-family: Pretendard, "Noto Sans KR", "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f5f7fa;
+      font-synthesis: none;
+      --primary: #2463eb;
+      --primary-dark: #1749b6;
+      --ink: #172033;
+      --muted: #67738a;
+      --line: #dfe5ee;
+      --soft: #f7f9fc;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; min-height: 100vh; background: #f5f7fa; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid rgba(36,99,235,.22); outline-offset: 2px; }
+    .app-shell { width: min(1480px, calc(100% - 56px)); margin: 0 auto; padding: 52px 0 30px; }
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: 28px; }
+    .eyebrow { display: block; margin-bottom: 12px; color: var(--primary); font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+    h1 { margin: 0; font-size: clamp(28px,3vw,40px); letter-spacing: -.045em; }
+    .page-header p { margin: 10px 0 0; color: var(--muted); font-size: 15px; }
+    .record-count { min-width: 104px; padding-left: 24px; border-left: 1px solid var(--line); text-align: right; }
+    .record-count strong { display: block; font: 800 29px/1 ui-monospace,Consolas,monospace; color: var(--primary); }
+    .record-count span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .panel { margin-bottom: 22px; padding: 30px; border: 1px solid #e1e6ee; border-radius: 16px; background: #fff; box-shadow: 0 8px 30px rgba(30,47,78,.055); }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+    .section-heading > div { display: flex; align-items: center; gap: 12px; }
+    .section-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+    .section-number { display: grid; width: 29px; height: 29px; place-items: center; border-radius: 8px; background: #eaf1ff; color: var(--primary); font: 800 11px/1 ui-monospace,monospace; }
+    .required-dot { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #ef4444; vertical-align: 1px; }
+    .form-grid { display: grid; grid-template-columns: 1.05fr 1.4fr 1fr; gap: 18px; }
+    .field { display: grid; gap: 9px; }
+    .field > span { font-size: 13px; font-weight: 700; }
+    .field em { margin-left: 4px; color: #ef4444; font-size: 10px; font-style: normal; }
+    .field small { margin-left: 4px; color: #919aac; font-size: 10px; font-weight: 500; }
+    .field input, .search-box input { width: 100%; border: 1px solid var(--line); background: #fff; color: var(--ink); transition: border-color .2s,box-shadow .2s; }
+    .field input { height: 48px; padding: 0 14px; border-radius: 9px; }
+    .field input::placeholder, .search-box input::placeholder { color: #a2aaba; }
+    .field input:focus, .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(36,99,235,.09); outline: none; }
+    .barcode-guidance { display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; color: #68748a; font-size: 11px; line-height: 1.55; }
+    .barcode-guidance b { display: grid; flex: 0 0 18px; height: 18px; place-items: center; border-radius: 50%; background: #eef2f7; color: #667085; font: 700 11px/1 serif; }
+    .barcode-guidance p { margin: 0; }
+    .button { border: 0; border-radius: 8px; font-weight: 750; transition: background .2s,border-color .2s,transform .1s; }
+    .button:active { transform: translateY(1px); }
+    .button-primary { background: var(--primary); color: #fff; }
+    .button-primary:hover { background: var(--primary-dark); }
+    .generate-button { display: flex; width: 190px; height: 48px; align-items: center; justify-content: center; gap: 18px; margin: 22px 0 0 auto; }
+    .generate-button span { font-size: 18px; }
+    .notice { position: sticky; z-index: 10; top: 14px; margin-bottom: 16px; padding: 13px 16px; border-radius: 10px; box-shadow: 0 6px 20px rgba(31,43,66,.12); font-size: 13px; font-weight: 700; }
+    .notice[hidden] { display: none; }
+    .notice-success { border: 1px solid #bce8cd; background: #effbf3; color: #16713a; }
+    .notice-error { border: 1px solid #ffc9ce; background: #fff1f2; color: #b4232f; }
+    .result-panel { display: none; border-top: 3px solid var(--primary); }
+    .result-panel.visible { display: block; }
+    .saved-badge { padding: 6px 10px; border-radius: 999px; background: #ecf9f1; color: #178146; font-size: 11px; font-weight: 800; }
+    .result-grid { display: grid; grid-template-columns: repeat(3,1fr); overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+    .result-row { display: flex; min-width: 0; min-height: 96px; align-items: center; justify-content: space-between; gap: 16px; padding: 19px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .result-row:nth-child(3n) { border-right: 0; }
+    .result-row:nth-last-child(-n+3) { border-bottom: 0; }
+    .result-row > div { min-width: 0; }
+    .result-label { display: block; margin-bottom: 10px; color: var(--muted); font-size: 11px; font-weight: 650; }
+    .result-value { display: block; overflow: hidden; color: #0f172a; font: 800 17px/1.25 ui-monospace,Consolas,monospace; text-overflow: ellipsis; white-space: nowrap; }
+    .result-value.name { font-family: inherit; font-size: 16px; }
+    .button-copy { flex: 0 0 auto; padding: 7px 10px; border: 1px solid #d6deea; background: #fff; color: #536176; font-size: 11px; }
+    .button-copy:hover { border-color: #aeb9ca; background: var(--soft); }
+    .result-barcode-note { margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .button-secondary { border: 1px solid #b7c4d7; background: #f8fafd; color: #25334a; }
+    .button-secondary:hover { background: #eef3f9; }
+    .copy-all-button { display: block; width: 132px; height: 42px; margin: 20px 0 0 auto; }
+    .list-topline { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    .section-heading.compact { margin: 0; }
+    .search-box { position: relative; display: flex; width: min(370px,100%); align-items: center; }
+    .search-box > span { position: absolute; left: 13px; z-index: 1; color: #8290a6; font-size: 22px; transform: rotate(-20deg); }
+    .search-box input { height: 42px; padding: 0 38px; border-radius: 9px; font-size: 13px; }
+    .search-box button { position: absolute; right: 10px; width: 25px; height: 25px; border: 0; border-radius: 50%; background: #edf1f6; color: #68748a; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; }
+    table { width: 100%; min-width: 1210px; border-collapse: collapse; }
+    th { padding: 12px 14px; border-bottom: 1px solid var(--line); background: #f7f9fc; color: #6c778b; font-size: 10px; font-weight: 800; text-align: left; white-space: nowrap; }
+    td { padding: 14px; border-bottom: 1px solid #ebeff4; color: #364258; font-size: 12px; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fbfcfe; }
+    td code { color: #25324a; font: 700 12px/1.3 ui-monospace,Consolas,monospace; white-space: nowrap; }
+    .product-name-cell { min-width: 210px; }
+    .product-name-cell strong { display: block; color: #202b3d; font-size: 13px; }
+    .product-name-cell small { display: block; overflow: hidden; max-width: 240px; margin-top: 5px; color: #8993a4; text-overflow: ellipsis; white-space: nowrap; }
+    .date-cell { min-width: 120px; color: #737f92; white-space: nowrap; }
+    .row-actions { display: flex; min-width: 154px; gap: 5px; }
+    .row-actions button { padding: 6px 8px; border: 1px solid #dbe2ec; border-radius: 6px; background: #fff; color: #576478; font-size: 10px; font-weight: 700; }
+    .row-actions button:hover { background: #f3f6fa; }
+    .row-actions .delete-action { border-color: #f1d6d9; color: #c03944; }
+    .empty-state { display: grid; min-height: 220px; place-items: center; align-content: center; color: #7b879b; text-align: center; }
+    .empty-state[hidden] { display: none; }
+    .empty-state span { display: grid; width: 38px; height: 38px; margin-bottom: 12px; place-items: center; border-radius: 50%; background: #eef3f9; color: #728096; font-size: 20px; }
+    .empty-state strong { color: #536176; font-size: 14px; }
+    .empty-state p { margin: 6px 0 0; font-size: 11px; }
+    .list-summary { margin: 12px 2px 0; color: #8a94a6; font-size: 11px; text-align: right; }
+    footer { padding: 6px 0 20px; color: #8b95a5; font-size: 11px; text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+    @media (max-width:1050px) {
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .field:last-child { grid-column: 1/-1; }
+      .result-grid { grid-template-columns: repeat(2,1fr); }
+      .result-row:nth-child(3n) { border-right: 1px solid var(--line); }
+      .result-row:nth-child(2n) { border-right: 0; }
+      .result-row:nth-last-child(-n+3) { border-bottom: 1px solid var(--line); }
+      .result-row:nth-last-child(-n+2) { border-bottom: 0; }
+    }
+    @media (max-width:700px) {
+      .app-shell { width: min(100% - 28px,560px); padding-top: 30px; }
+      .page-header { position: relative; display: block; padding-right: 64px; }
+      .page-header h1 { font-size: 26px; white-space: nowrap; }
+      .record-count { position: absolute; top: 0; right: 0; min-width: auto; padding-left: 0; border-left: 0; }
+      .panel { padding: 21px 18px; border-radius: 13px; }
+      .input-panel .section-heading > p { display: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field:last-child { grid-column: auto; }
+      .generate-button, .copy-all-button { width: 100%; }
+      .result-grid { grid-template-columns: 1fr; }
+      .result-row, .result-row:nth-child(3n), .result-row:nth-child(2n) { border-right: 0; border-bottom: 1px solid var(--line); }
+      .result-row:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .result-row:last-child { border-bottom: 0; }
+      .list-topline { align-items: stretch; flex-direction: column; }
+      .search-box { width: 100%; }
+      .table-wrap { overflow: visible; border: 0; }
+      table, thead, tbody, tr, th, td { display: block; min-width: 0; }
+      thead { display: none; }
+      tbody { display: grid; gap: 12px; }
+      tbody tr { padding: 8px 14px 14px; border: 1px solid var(--line); border-radius: 10px; }
+      td, tbody tr:last-child td { display: grid; grid-template-columns: 105px minmax(0,1fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid #edf0f4; }
+      td::before { content: attr(data-label); color: #8993a4; font-size: 10px; font-weight: 700; }
+      .product-name-cell { min-width: 0; }
+      .product-name-cell small { max-width: 100%; }
+      .row-actions { display: flex; min-width: 0; padding-top: 12px; border: 0; }
+      .row-actions::before { display: none; }
+      .row-actions button { flex: 1; padding: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="page-header">
+      <div><span class="eyebrow">COUPANG PRODUCT ADMIN</span><h1>쿠팡 상품정보 생성기</h1><p>신규 상품 등록에 필요한 정보를 자동으로 생성합니다.</p></div>
+      <div class="record-count"><strong id="recordCount">0</strong><span>저장 상품</span></div>
+    </header>
+    <div id="notice" class="notice notice-success" role="status" hidden="">상품 기록을 삭제했습니다. 발급 번호는 재사용되지 않습니다.</div>
+    <main>
+      <section class="panel input-panel" aria-labelledby="inputHeading">
+        <div class="section-heading"><div><span class="section-number">01</span><h2 id="inputHeading">상품 입력</h2></div><p><span class="required-dot"></span>제품명은 필수 항목입니다.</p></div>
+        <form id="productForm">
+          <div class="form-grid">
+            <label class="field"><span>제품명 <em>필수</em></span><input id="productName" placeholder="예: 크레이드미트 4종세트" autocomplete="off"></label>
+            <label class="field"><span>구성/옵션 <small>선택</small></span><input id="productOption" placeholder="예: 블럭형 / 타월형 / 원형블럭형 / 4번째 종류" autocomplete="off"></label>
+            <label class="field"><span>바코드번호 <small>선택</small></span><input id="barcodeInput" placeholder="미입력 시 EAN-13 형식 자동 생성" inputmode="numeric" maxlength="13" autocomplete="off"></label>
+          </div>
+          <div class="barcode-guidance"><b>i</b><p>자동 생성된 바코드는 EAN-13 숫자 형식과 체크디지트를 만족하도록 생성된 내부용 번호입니다. 공식 유통 바코드가 필요한 경우 공식 발급 바코드를 사용하세요.</p></div>
+          <button class="button button-primary generate-button" type="submit">상품정보 생성 <span>→</span></button>
+        </form>
+      </section>
+      <section class="panel result-panel" id="resultSection" aria-labelledby="resultHeading">
+        <div class="section-heading"><div><span class="section-number">02</span><h2 id="resultHeading">생성 결과</h2></div><span class="saved-badge">저장 완료</span></div>
+        <div class="result-grid" id="resultGrid"></div>
+        <p class="result-barcode-note" id="resultBarcodeNote"></p>
+        <button class="button button-secondary copy-all-button" id="copyAllButton" type="button">전체 복사</button>
+      </section>
+      <section class="panel list-panel" aria-labelledby="listHeading">
+        <div class="list-topline">
+          <div class="section-heading compact"><div><span class="section-number">03</span><h2 id="listHeading">상품 생성 기록</h2></div></div>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="searchInput" placeholder="제품명, 코드, CTIN, 바코드 검색" aria-label="상품 검색"><button id="clearSearch" type="button" aria-label="검색어 지우기" hidden="">×</button></label>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>번호</th><th>제품명</th><th>판매자상품코드</th><th>모델번호</th><th>CTIN</th><th>바코드번호</th><th>생성일</th><th><span class="sr-only">작업</span></th></tr></thead><tbody id="productRows"></tbody></table>
+          <div class="empty-state" id="emptyState"><span>＋</span><strong id="emptyTitle">아직 생성된 상품이 없습니다.</strong><p id="emptyDescription">위 입력 영역에서 첫 상품을 생성해 보세요.</p></div>
+        </div>
+        <p class="list-summary" id="listSummary">전체 0개 · 검색 결과 0개</p>
+      </section>
+    </main>
+    <footer>데이터는 이 HTML 파일을 여는 브라우저의 localStorage에만 저장됩니다.</footer>
+  </div>
+  <script>
+  (() => {
+    'use strict';
+    const PRODUCTS_KEY = 'coupang-product-generator-standalone.products.v1';
+    const REGISTRY_KEY = 'coupang-product-generator-standalone.registry.v1';
+    const BARCODE_NOTICE = '자동 생성된 바코드는 EAN-13 숫자 형식과 체크디지트를 만족하도록 생성된 내부용 번호입니다. 공식 유통 바코드가 필요한 경우 공식 발급 바코드를 사용하세요.';
+    const EMPTY_REGISTRY = { lastProductNumber:0, lastCodeSerial:0, usedProductNumbers:[], usedProductCodes:[], usedModelNumbers:[], usedCTINs:[], usedBarcodes:[] };
+    const INITIALS = ['G','K','N','D','D','R','M','B','B','S','S','','J','J','C','C','T','P','H'];
+    const $ = (selector) => document.querySelector(selector);
+    let products = readStorage(PRODUCTS_KEY, []);
+    let registry = Object.assign({}, EMPTY_REGISTRY, readStorage(REGISTRY_KEY, EMPTY_REGISTRY));
+    let currentResult = null;
+    let noticeTimer = null;
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="description" content="쿠팡 신규 상품 등록용 상품 식별정보 생성기" />
-    <title>쿠팡 상품정보 생성기</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+    function readStorage(key, fallback) {
+      try { const value = JSON.parse(localStorage.getItem(key)); return value == null ? fallback : value; }
+      catch (_) { return fallback; }
+    }
+    function randomDigits(length) {
+      const values = new Uint32Array(length);
+      crypto.getRandomValues(values);
+      return Array.from(values, value => String(value % 10)).join('');
+    }
+    function hangulInitial(character) {
+      const code = character.charCodeAt(0);
+      if (code < 0xac00 || code > 0xd7a3) return '';
+      return INITIALS[Math.floor((code - 0xac00) / 588)];
+    }
+    function createAbbreviation(name) {
+      const cleaned = name.replace(/\d+\s*(?:종|개|입|팩)?\s*(?:세트|SET)/gi, '');
+      const words = cleaned.toUpperCase().match(/[A-Z]+/g) || [];
+      const latin = words.length > 1 ? words.map(word => word[0]).join('') : (words[0] || '').replace(/[AEIOU]/g, '');
+      const hangul = Array.from(cleaned).map(hangulInitial).join('');
+      const source = (latin + hangul).replace(/[^A-Z]/g, '');
+      if (!source) return 'ITEM';
+      if (source.length <= 4) return source.padEnd(4, 'X');
+      return source.slice(0,2) + source.slice(-2);
+    }
+    function createOptionToken(name, option) {
+      const match = (name + ' ' + option).match(/(\d+)\s*(?:종|개|입|팩|세트|set)/i);
+      if (match) return Number(match[1]) + 'SET';
+      const count = option.split(/[/,|]/).map(value => value.trim()).filter(Boolean).length;
+      if (count > 1) return count + 'SET';
+      const latin = option.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      return latin ? latin.slice(0,6) : 'STD';
+    }
+    function generateProductCode(name, option, serial, existing) {
+      const base = createAbbreviation(name) + '-' + createOptionToken(name, option) + '-';
+      let next = serial, candidate;
+      do { candidate = base + String(next++).padStart(3,'0'); } while (existing.has(candidate));
+      return candidate;
+    }
+    function generateModelNumber(name, option, serial, existing) {
+      const token = createOptionToken(name, option);
+      const compact = token === 'STD' ? 'S' : token.replace('SET','S');
+      const base = createAbbreviation(name) + compact + '-';
+      let next = serial, candidate;
+      do { candidate = base + String(next++).padStart(3,'0'); } while (existing.has(candidate));
+      return candidate;
+    }
+    function generateCTIN(existing) {
+      let candidate;
+      do { candidate = '8' + randomDigits(12); } while (existing.has(candidate));
+      return candidate;
+    }
+    function calculateEAN13CheckDigit(firstTwelve) {
+      const digits = String(firstTwelve);
+      if (!/^\d{12}$/.test(digits)) throw new Error('EAN-13 계산에는 12자리 숫자가 필요합니다.');
+      const sum = Array.from(digits, Number).reduce((total,digit,index) => total + digit * (index % 2 === 0 ? 1 : 3), 0);
+      return String((10 - sum % 10) % 10);
+    }
+    function isValidEAN13(value) {
+      const barcode = String(value).trim();
+      return /^\d{13}$/.test(barcode) && calculateEAN13CheckDigit(barcode.slice(0,12)) === barcode[12];
+    }
+    function generateEAN13(existing) {
+      let candidate;
+      do { const firstTwelve = '29' + randomDigits(10); candidate = firstTwelve + calculateEAN13CheckDigit(firstTwelve); } while (existing.has(candidate));
+      return candidate;
+    }
+    function nextProductNumber(existing, last) {
+      let next = Math.max(0, Number(last) || 0) + 1;
+      let formatted = String(next).padStart(3,'0');
+      while (existing.has(formatted)) { formatted = String(++next).padStart(3,'0'); }
+      return formatted;
+    }
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
+    }
+    function showNotice(text, error) {
+      const notice = $('#notice');
+      clearTimeout(noticeTimer);
+      notice.textContent = text;
+      notice.className = 'notice ' + (error ? 'notice-error' : 'notice-success');
+      notice.hidden = false;
+      noticeTimer = setTimeout(() => { notice.hidden = true; }, 2600);
+    }
+    function saveState() {
+      localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+      localStorage.setItem(REGISTRY_KEY, JSON.stringify(registry));
+    }
+    function formatProduct(product) {
+      return [['상품번호',product.productNumber],['제품명',product.productName],['구성/옵션',product.option || '-'],['판매자상품코드',product.productCode],['모델번호',product.modelNumber],['CTIN',product.ctin],['바코드번호',product.barcode]].map(item => item[0] + '\t' + item[1]).join('\n');
+    }
+    function copyText(text, label) {
+      const fallback = () => {
+        const area = document.createElement('textarea');
+        area.value = text; area.style.position = 'fixed'; area.style.opacity = '0';
+        document.body.appendChild(area); area.select();
+        const copied = document.execCommand('copy'); area.remove();
+        if (!copied) throw new Error('copy failed');
+      };
+      const operation = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text).catch(fallback) : Promise.resolve().then(fallback);
+      operation.then(() => showNotice(label + '를 복사했습니다.', false)).catch(() => showNotice('복사에 실패했습니다. 브라우저 권한을 확인해 주세요.', true));
+    }
+    function renderResult(product) {
+      currentResult = product;
+      const fields = [['상품번호',product.productNumber],['제품명',product.productName],['판매자상품코드',product.productCode],['모델번호',product.modelNumber],['CTIN',product.ctin],['바코드번호',product.barcode]];
+      $('#resultGrid').innerHTML = fields.map(item => '<div class="result-row"><div><span class="result-label">' + item[0] + '</span><strong class="result-value ' + (item[0] === '제품명' ? 'name' : '') + '">' + escapeHTML(item[1]) + '</strong></div><button class="button button-copy" type="button" data-copy-value="' + escapeHTML(item[1]) + '" data-copy-label="' + item[0] + '">복사</button></div>').join('');
+      $('#resultBarcodeNote').textContent = product.barcodeSource === 'generated' ? BARCODE_NOTICE : '';
+      $('#resultSection').classList.add('visible');
+    }
+    function renderList() {
+      const keyword = $('#searchInput').value.trim().toLowerCase();
+      const filtered = keyword ? products.filter(product => [product.productName,product.productCode,product.modelNumber,product.ctin,product.barcode].some(value => value.toLowerCase().includes(keyword))) : products;
+      $('#recordCount').textContent = products.length;
+      $('#productRows').innerHTML = filtered.map(product => '<tr><td data-label="번호"><strong>' + escapeHTML(product.productNumber) + '</strong></td><td data-label="제품명" class="product-name-cell"><strong>' + escapeHTML(product.productName) + '</strong>' + (product.option ? '<small>' + escapeHTML(product.option) + '</small>' : '') + '</td><td data-label="판매자상품코드"><code>' + escapeHTML(product.productCode) + '</code></td><td data-label="모델번호"><code>' + escapeHTML(product.modelNumber) + '</code></td><td data-label="CTIN"><code>' + escapeHTML(product.ctin) + '</code></td><td data-label="바코드번호"><code>' + escapeHTML(product.barcode) + '</code></td><td data-label="생성일" class="date-cell">' + new Intl.DateTimeFormat('ko-KR',{dateStyle:'short',timeStyle:'short'}).format(new Date(product.createdAt)) + '</td><td class="row-actions"><button type="button" data-action="view" data-id="' + product.id + '">보기</button><button type="button" data-action="copy" data-id="' + product.id + '">복사</button><button type="button" class="delete-action" data-action="delete" data-id="' + product.id + '">삭제</button></td></tr>').join('');
+      const empty = filtered.length === 0;
+      $('#emptyState').hidden = !empty;
+      $('#emptyTitle').textContent = keyword ? '검색 결과가 없습니다.' : '아직 생성된 상품이 없습니다.';
+      $('#emptyDescription').textContent = keyword ? '다른 검색어로 다시 찾아보세요.' : '위 입력 영역에서 첫 상품을 생성해 보세요.';
+      $('#listSummary').textContent = '전체 ' + products.length + '개 · 검색 결과 ' + filtered.length + '개';
+      $('#clearSearch').hidden = !keyword;
+    }
+    $('#barcodeInput').addEventListener('input', event => { event.target.value = event.target.value.replace(/\D/g,'').slice(0,13); });
+    $('#productForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const name = $('#productName').value.trim();
+      const option = $('#productOption').value.trim();
+      const enteredBarcode = $('#barcodeInput').value.trim();
+      if (!name) { showNotice('제품명을 입력해 주세요.', true); $('#productName').focus(); return; }
+      if (enteredBarcode && !isValidEAN13(enteredBarcode)) { showNotice('바코드번호는 유효한 체크디지트를 가진 EAN-13 13자리 숫자여야 합니다.', true); return; }
+      const usedNumbers = new Set([...registry.usedProductNumbers,...products.map(item => item.productNumber)]);
+      const usedCodes = new Set([...registry.usedProductCodes,...products.map(item => item.productCode)]);
+      const usedModels = new Set([...registry.usedModelNumbers,...products.map(item => item.modelNumber)]);
+      const usedCTINs = new Set([...registry.usedCTINs,...products.map(item => item.ctin)]);
+      const usedBarcodes = new Set([...registry.usedBarcodes,...products.map(item => item.barcode)]);
+      if (enteredBarcode && usedBarcodes.has(enteredBarcode)) { showNotice('이미 생성 기록에 사용된 바코드번호입니다.', true); return; }
+      const productNumber = nextProductNumber(usedNumbers, registry.lastProductNumber);
+      const serial = Math.max(0, Number(registry.lastCodeSerial) || 0) + 1;
+      const productCode = generateProductCode(name, option, serial, usedCodes);
+      const modelNumber = generateModelNumber(name, option, serial, usedModels);
+      const ctin = generateCTIN(usedCTINs);
+      const barcode = enteredBarcode || generateEAN13(usedBarcodes);
+      const product = { id:(crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random()), productNumber, productName:name, option, productCode, modelNumber, ctin, barcode, barcodeSource:enteredBarcode ? 'official' : 'generated', createdAt:new Date().toISOString() };
+      products.unshift(product);
+      registry = { lastProductNumber:Number(productNumber), lastCodeSerial:serial, usedProductNumbers:[...registry.usedProductNumbers,productNumber], usedProductCodes:[...registry.usedProductCodes,productCode], usedModelNumbers:[...registry.usedModelNumbers,modelNumber], usedCTINs:[...registry.usedCTINs,ctin], usedBarcodes:[...registry.usedBarcodes,barcode] };
+      saveState(); renderResult(product); renderList(); event.target.reset(); showNotice('상품정보를 생성하고 저장했습니다.', false);
+      requestAnimationFrame(() => $('#resultSection').scrollIntoView({behavior:'smooth',block:'start'}));
+    });
+    $('#resultGrid').addEventListener('click', event => { const button = event.target.closest('[data-copy-value]'); if (button) copyText(button.dataset.copyValue, button.dataset.copyLabel); });
+    $('#copyAllButton').addEventListener('click', () => { if (currentResult) copyText(formatProduct(currentResult), '전체 정보'); });
+    $('#searchInput').addEventListener('input', renderList);
+    $('#clearSearch').addEventListener('click', () => { $('#searchInput').value = ''; renderList(); $('#searchInput').focus(); });
+    $('#productRows').addEventListener('click', event => {
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+      const product = products.find(item => item.id === button.dataset.id);
+      if (!product) return;
+      if (button.dataset.action === 'view') { renderResult(product); $('#resultSection').scrollIntoView({behavior:'smooth',block:'start'}); }
+      if (button.dataset.action === 'copy') copyText(formatProduct(product), '전체 정보');
+      if (button.dataset.action === 'delete' && confirm('상품번호 ' + product.productNumber + ' 기록을 삭제하시겠습니까?\n삭제해도 발급된 번호와 코드는 다시 사용되지 않습니다.')) {
+        products = products.filter(item => item.id !== product.id); saveState();
+        if (currentResult && currentResult.id === product.id) { currentResult = null; $('#resultSection').classList.remove('visible'); }
+        renderList(); showNotice('상품 기록을 삭제했습니다. 발급 번호는 재사용되지 않습니다.', false);
+      }
+    });
+    renderList();
+  })();
+  </script>
+
+
+</body></html>
